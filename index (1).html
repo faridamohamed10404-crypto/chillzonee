@@ -1,0 +1,1024 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chill Zone — Pro Manager</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+<style>
+:root {
+  --bg: #0a0a0f;
+  --panel: #111118;
+  --card: #16161f;
+  --border: #2a2a3a;
+  --accent: #00f5ff;
+  --accent2: #ff2d78;
+  --green: #00ff88;
+  --yellow: #ffd700;
+  --purple: #a855f7;
+  --text: #e0e0f0;
+  --muted: #6666aa;
+  --glow: 0 0 20px rgba(0,245,255,0.3);
+  --glow2: 0 0 20px rgba(255,45,120,0.3);
+  --radius: 12px;
+}
+[data-theme="light"] {
+  --bg: #f0f2f8;
+  --panel: #e4e6f0;
+  --card: #ffffff;
+  --border: #d0d4e8;
+  --text: #1a1a2e;
+  --muted: #7777aa;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:var(--bg); color:var(--text); font-family:'Rajdhani',sans-serif; min-height:100vh; transition: background 0.3s, color 0.3s; }
+body::before {
+  content:''; position:fixed; inset:0; pointer-events:none; z-index:0;
+  background: radial-gradient(ellipse at 15% 15%, rgba(0,245,255,0.04) 0%, transparent 50%),
+              radial-gradient(ellipse at 85% 85%, rgba(255,45,120,0.04) 0%, transparent 50%);
+}
+[data-theme="light"] body::before { display:none; }
+
+/* ── LOGIN ── */
+#login-screen {
+  position:fixed; inset:0; z-index:1000;
+  background: linear-gradient(135deg, #0a0a0f 0%, #12121e 100%);
+  display:flex; align-items:center; justify-content:center; flex-direction:column; gap:0;
+}
+.login-box {
+  background: rgba(22,22,31,0.95);
+  border:1px solid var(--accent);
+  border-radius:20px;
+  padding:48px 40px;
+  width:360px;
+  box-shadow: 0 0 80px rgba(0,245,255,0.15);
+  animation: fadeUp 0.5s ease;
+}
+@keyframes fadeUp { from{transform:translateY(30px);opacity:0} to{transform:translateY(0);opacity:1} }
+.login-logo {
+  font-family:'Orbitron',monospace; font-size:28px; font-weight:900;
+  color:var(--accent); text-shadow:var(--glow); text-align:center;
+  margin-bottom:6px; letter-spacing:4px;
+}
+.login-logo span { color:var(--accent2); }
+.login-sub { text-align:center; color:var(--muted); font-size:13px; margin-bottom:36px; letter-spacing:1px; }
+.login-field { margin-bottom:18px; }
+.login-field label { display:block; font-size:11px; color:var(--muted); margin-bottom:6px; letter-spacing:2px; text-transform:uppercase; }
+.login-field input {
+  width:100%; padding:14px 16px;
+  background:#0d0d14; border:1px solid #2a2a3a; border-radius:8px;
+  color:#e0e0f0; font-family:'Rajdhani',sans-serif; font-size:16px; outline:none;
+  transition:border-color 0.2s;
+}
+.login-field input:focus { border-color:var(--accent); box-shadow:0 0 0 2px rgba(0,245,255,0.1); }
+.login-err { color:var(--accent2); font-size:13px; margin-bottom:12px; display:none; }
+.btn-login {
+  width:100%; padding:15px;
+  background:linear-gradient(135deg,var(--accent),#0099cc);
+  color:#000; border:none; border-radius:8px;
+  font-family:'Orbitron',monospace; font-size:14px; font-weight:700;
+  cursor:pointer; letter-spacing:2px; transition:all 0.2s;
+}
+.btn-login:hover { transform:translateY(-1px); box-shadow:0 4px 20px rgba(0,245,255,0.4); }
+.login-hint { text-align:center; color:#3a3a5a; font-size:12px; margin-top:16px; }
+
+/* ── NAV ── */
+nav {
+  position:sticky; top:0; z-index:50;
+  display:flex; align-items:center; justify-content:space-between;
+  padding:0 32px; height:64px;
+  background:rgba(10,10,15,0.95); backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border);
+}
+[data-theme="light"] nav { background:rgba(240,242,248,0.95); }
+.nav-logo { font-family:'Orbitron',monospace; font-size:18px; font-weight:900; color:var(--accent); text-shadow:var(--glow); letter-spacing:3px; }
+.nav-logo span { color:var(--accent2); }
+.nav-tabs { display:flex; gap:4px; }
+.nav-tab {
+  padding:8px 18px; border-radius:8px; border:none;
+  background:transparent; color:var(--muted);
+  font-family:'Rajdhani',sans-serif; font-size:14px; font-weight:600;
+  cursor:pointer; letter-spacing:1px; transition:all 0.2s;
+}
+.nav-tab.active { background:rgba(0,245,255,0.1); color:var(--accent); }
+.nav-tab:hover:not(.active) { color:var(--text); background:rgba(255,255,255,0.05); }
+.nav-right { display:flex; align-items:center; gap:12px; }
+#live-clock { font-family:'Orbitron',monospace; font-size:14px; color:var(--accent); letter-spacing:2px; }
+.theme-btn {
+  width:36px; height:36px; border-radius:50%; border:1px solid var(--border);
+  background:transparent; color:var(--text); cursor:pointer; font-size:16px;
+  display:flex; align-items:center; justify-content:center; transition:all 0.2s;
+}
+.theme-btn:hover { border-color:var(--accent); color:var(--accent); }
+.logout-btn {
+  padding:7px 14px; border-radius:8px; border:1px solid var(--border);
+  background:transparent; color:var(--muted); font-family:'Rajdhani',sans-serif;
+  font-size:13px; cursor:pointer; transition:all 0.2s;
+}
+.logout-btn:hover { border-color:var(--accent2); color:var(--accent2); }
+
+/* ── PAGES ── */
+.page { display:none; }
+.page.active { display:block; }
+
+/* ── STATS BAR ── */
+.stats-bar {
+  display:flex; gap:16px; padding:16px 32px;
+  background:var(--panel); border-bottom:1px solid var(--border);
+  position:relative; z-index:1; flex-wrap:wrap;
+}
+.stat { display:flex; align-items:center; gap:10px; font-size:14px; color:var(--muted); }
+.stat-val { font-family:'Orbitron',monospace; font-size:15px; font-weight:700; color:var(--text); }
+.dot { width:8px;height:8px;border-radius:50%;animation:pulse 2s infinite; }
+.dot-g{background:var(--green);box-shadow:0 0 8px var(--green);}
+.dot-r{background:var(--accent2);box-shadow:0 0 8px var(--accent2);}
+.dot-y{background:var(--yellow);box-shadow:0 0 8px var(--yellow);}
+.dot-p{background:var(--purple);box-shadow:0 0 8px var(--purple);}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+
+/* ── ROOMS GRID ── */
+.rooms-wrap { padding:32px; display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:20px; position:relative; z-index:1; }
+
+.room-card {
+  background:var(--card); border:1px solid var(--border); border-radius:var(--radius);
+  overflow:hidden; transition:all 0.3s; position:relative;
+}
+.room-card::before {
+  content:''; position:absolute; top:0;left:0;right:0; height:3px;
+  background:var(--border); transition:all 0.3s;
+}
+.room-card.free::before { background:var(--green); box-shadow:0 0 12px rgba(0,255,136,0.5); }
+.room-card.occupied::before { background:var(--accent2); box-shadow:var(--glow2); }
+.room-card.reserved::before { background:var(--purple); box-shadow:0 0 12px rgba(168,85,247,0.5); }
+.room-card:hover { transform:translateY(-3px); box-shadow:0 12px 40px rgba(0,0,0,0.3); border-color:rgba(0,245,255,0.2); }
+
+.rh { display:flex; align-items:center; justify-content:space-between; padding:18px 20px 14px; border-bottom:1px solid var(--border); }
+.rh-left { display:flex; align-items:center; gap:10px; }
+.rh-icon { font-size:20px; }
+.rh-name { font-family:'Orbitron',monospace; font-size:14px; font-weight:700; letter-spacing:2px; }
+.badge { padding:3px 10px; border-radius:20px; font-size:10px; font-weight:600; letter-spacing:1px; text-transform:uppercase; }
+.badge-free { background:rgba(0,255,136,0.12); color:var(--green); border:1px solid rgba(0,255,136,0.25); }
+.badge-occupied { background:rgba(255,45,120,0.12); color:var(--accent2); border:1px solid rgba(255,45,120,0.25); }
+.badge-reserved { background:rgba(168,85,247,0.12); color:var(--purple); border:1px solid rgba(168,85,247,0.25); }
+
+.rb { padding:16px 20px; }
+.info-r { display:flex; justify-content:space-between; align-items:center; padding:7px 0; border-bottom:1px solid rgba(255,255,255,0.04); font-size:13px; }
+.info-r:last-child { border:none; }
+.il { color:var(--muted); }
+.iv { font-weight:600; font-size:13px; }
+.iv.g{color:var(--green)} .iv.r{color:var(--accent2)} .iv.y{color:var(--yellow)} .iv.p{color:var(--purple)} .iv.m{color:var(--muted)}
+
+.timer-big { font-family:'Orbitron',monospace; font-size:30px; font-weight:700; text-align:center; padding:14px; color:var(--accent2); text-shadow:var(--glow2); letter-spacing:3px; }
+
+.ra { display:flex; gap:8px; padding:0 20px 18px; flex-wrap:wrap; }
+.btn { flex:1; min-width:80px; padding:10px 8px; border:none; border-radius:8px; font-family:'Rajdhani',sans-serif; font-size:13px; font-weight:600; letter-spacing:1px; cursor:pointer; transition:all 0.2s; text-transform:uppercase; }
+.btn-in { background:linear-gradient(135deg,#00ff88,#00cc70); color:#000; }
+.btn-in:hover:not(:disabled) { box-shadow:0 4px 16px rgba(0,255,136,0.4); transform:translateY(-1px); }
+.btn-out { background:linear-gradient(135deg,#ff2d78,#cc0055); color:#fff; }
+.btn-out:hover:not(:disabled) { box-shadow:0 4px 16px rgba(255,45,120,0.4); transform:translateY(-1px); }
+.btn-res { background:linear-gradient(135deg,#a855f7,#7c3aed); color:#fff; }
+.btn-res:hover:not(:disabled) { box-shadow:0 4px 16px rgba(168,85,247,0.4); transform:translateY(-1px); }
+.btn-activate { background:linear-gradient(135deg,#ffd700,#cc9900); color:#000; }
+.btn-activate:hover:not(:disabled) { box-shadow:0 4px 16px rgba(255,215,0,0.4); transform:translateY(-1px); }
+.btn:disabled { opacity:0.25; cursor:not-allowed; transform:none!important; box-shadow:none!important; }
+
+/* ── DASHBOARD ── */
+.dash-wrap { padding:32px; position:relative; z-index:1; }
+.dash-kpis { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:16px; margin-bottom:28px; }
+.kpi {
+  background:var(--card); border:1px solid var(--border); border-radius:var(--radius);
+  padding:20px 24px; position:relative; overflow:hidden;
+}
+.kpi::after { content:''; position:absolute; top:-20px; right:-20px; width:80px; height:80px; border-radius:50%; opacity:0.08; }
+.kpi.k1::after { background:var(--green); }
+.kpi.k2::after { background:var(--accent2); }
+.kpi.k3::after { background:var(--yellow); }
+.kpi.k4::after { background:var(--purple); }
+.kpi-label { font-size:11px; color:var(--muted); letter-spacing:2px; text-transform:uppercase; margin-bottom:8px; }
+.kpi-val { font-family:'Orbitron',monospace; font-size:26px; font-weight:700; }
+.kpi.k1 .kpi-val{color:var(--green)} .kpi.k2 .kpi-val{color:var(--accent2)} .kpi.k3 .kpi-val{color:var(--yellow)} .kpi.k4 .kpi-val{color:var(--purple)}
+.kpi-sub { font-size:12px; color:var(--muted); margin-top:4px; }
+
+.charts-grid { display:grid; grid-template-columns:2fr 1fr; gap:20px; margin-bottom:28px; }
+@media(max-width:900px){.charts-grid{grid-template-columns:1fr;}}
+.chart-card { background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:24px; }
+.chart-title { font-family:'Orbitron',monospace; font-size:13px; color:var(--accent); letter-spacing:2px; margin-bottom:20px; }
+
+/* ── LOG ── */
+.log-wrap { padding:32px; position:relative; z-index:1; }
+.log-card { background:var(--card); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; }
+.log-hdr { display:flex; align-items:center; justify-content:space-between; padding:16px 24px; background:var(--panel); border-bottom:1px solid var(--border); }
+.log-title { font-family:'Orbitron',monospace; font-size:13px; color:var(--accent); letter-spacing:2px; }
+.btn-clear { padding:6px 14px; background:transparent; border:1px solid var(--border); border-radius:6px; color:var(--muted); font-family:'Rajdhani',sans-serif; font-size:12px; cursor:pointer; transition:all 0.2s; }
+.btn-clear:hover { border-color:var(--accent2); color:var(--accent2); }
+table { width:100%; border-collapse:collapse; font-size:13px; }
+th { padding:12px 16px; text-align:left; font-size:10px; letter-spacing:1px; text-transform:uppercase; color:var(--muted); background:var(--panel); border-bottom:1px solid var(--border); }
+td { padding:12px 16px; border-bottom:1px solid rgba(255,255,255,0.03); color:var(--text); }
+tr:hover td { background:rgba(255,255,255,0.02); }
+tr:last-child td { border:none; }
+.t-empty { padding:48px; text-align:center; color:var(--muted); }
+
+/* ── MODALS ── */
+.overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8); backdrop-filter:blur(6px); z-index:200; align-items:center; justify-content:center; }
+.overlay.show { display:flex; }
+.modal { background:var(--card); border-radius:16px; padding:32px; width:420px; max-width:95vw; animation:modalIn 0.3s ease; }
+.modal.m-accent { border:1px solid var(--accent); box-shadow:0 0 60px rgba(0,245,255,0.15); }
+.modal.m-red { border:1px solid var(--accent2); box-shadow:0 0 60px rgba(255,45,120,0.15); }
+.modal.m-purple { border:1px solid var(--purple); box-shadow:0 0 60px rgba(168,85,247,0.15); }
+.modal.m-yellow { border:1px solid var(--yellow); box-shadow:0 0 60px rgba(255,215,0,0.15); }
+@keyframes modalIn{from{transform:scale(0.9) translateY(20px);opacity:0}to{transform:scale(1) translateY(0);opacity:1}}
+.modal h2 { font-family:'Orbitron',monospace; font-size:16px; letter-spacing:2px; margin-bottom:24px; }
+.modal h2.c-accent{color:var(--accent)} .modal h2.c-purple{color:var(--purple)} .modal h2.c-yellow{color:var(--yellow)}
+.mf { margin-bottom:14px; }
+.mf label { display:block; font-size:11px; color:var(--muted); margin-bottom:5px; letter-spacing:1px; text-transform:uppercase; }
+.mf input, .mf select {
+  width:100%; padding:12px 14px; background:var(--panel); border:1px solid var(--border);
+  border-radius:8px; color:var(--text); font-family:'Rajdhani',sans-serif; font-size:15px; outline:none; transition:border-color 0.2s;
+}
+.mf input:focus,.mf select:focus{border-color:var(--accent);}
+.ma { display:flex; gap:10px; margin-top:20px; }
+.btn-confirm { flex:1; padding:13px; background:linear-gradient(135deg,var(--accent),#0099cc); color:#000; border:none; border-radius:8px; font-family:'Orbitron',monospace; font-size:12px; font-weight:700; cursor:pointer; letter-spacing:1px; transition:all 0.2s; }
+.btn-confirm:hover { transform:translateY(-1px); box-shadow:0 4px 20px rgba(0,245,255,0.3); }
+.btn-confirm.c-purple { background:linear-gradient(135deg,var(--purple),#7c3aed); color:#fff; }
+.btn-cancel { padding:13px 20px; background:transparent; color:var(--muted); border:1px solid var(--border); border-radius:8px; font-family:'Rajdhani',sans-serif; font-size:14px; cursor:pointer; }
+
+.receipt-row { display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.05); font-size:14px; }
+.receipt-row:last-child{border:none}
+.receipt-divider{border:none;border-top:1px dashed var(--border);margin:12px 0;}
+.receipt-total{display:flex;justify-content:space-between;align-items:center;padding:16px;background:rgba(255,215,0,0.07);border:1px solid rgba(255,215,0,0.2);border-radius:8px;margin-top:16px;}
+.rt-label{font-family:'Orbitron',monospace;font-size:12px;color:var(--yellow);}
+.rt-val{font-family:'Orbitron',monospace;font-size:28px;font-weight:900;color:var(--yellow);text-shadow:0 0 20px rgba(255,215,0,0.4);}
+
+/* ── RESERVATIONS LIST ── */
+.res-list { padding:32px; position:relative; z-index:1; display:grid; gap:12px; }
+.res-item {
+  background:var(--card); border:1px solid var(--border); border-radius:var(--radius);
+  padding:16px 20px; display:flex; align-items:center; justify-content:space-between; gap:16px;
+  border-left:3px solid var(--purple);
+}
+.res-info { flex:1; }
+.res-name { font-weight:600; font-size:15px; margin-bottom:4px; }
+.res-meta { font-size:12px; color:var(--muted); }
+.res-actions { display:flex; gap:8px; }
+.btn-sm { padding:7px 14px; border:none; border-radius:6px; font-family:'Rajdhani',sans-serif; font-size:12px; font-weight:600; cursor:pointer; letter-spacing:1px; text-transform:uppercase; }
+.btn-sm-red { background:rgba(255,45,120,0.15); color:var(--accent2); border:1px solid rgba(255,45,120,0.25); }
+.btn-sm-green { background:rgba(0,255,136,0.15); color:var(--green); border:1px solid rgba(0,255,136,0.25); }
+
+@media(max-width:768px){
+  .rooms-wrap,.dash-wrap,.log-wrap,.res-list{padding:16px;}
+  .stats-bar{padding:12px 16px;}
+  nav{padding:0 16px;}
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">CHILL<span>ZONE</span></div>
+    <div class="login-sub">ROOM MANAGEMENT SYSTEM</div>
+    <div class="login-field">
+      <label>Username</label>
+      <input type="text" id="l-user" placeholder="admin" />
+    </div>
+    <div class="login-field">
+      <label>Password</label>
+      <input type="password" id="l-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()" />
+    </div>
+    <div class="login-err" id="l-err">❌ Invalid username or password</div>
+    <button class="btn-login" onclick="doLogin()">ENTER SYSTEM</button>
+    <div class="login-hint">Default: admin / 1234</div>
+
+    <!-- Quick Action Icons -->
+    <div style="display:flex;justify-content:center;gap:8px;margin-top:20px;padding-top:16px;border-top:1px solid #1e1e2e">
+      <button onclick="openChangeModal('username')" title="Change Username" style="display:flex;flex-direction:column;align-items:center;gap:5px;background:rgba(0,245,255,0.07);border:1px solid rgba(0,245,255,0.15);border-radius:10px;padding:10px 14px;cursor:pointer;transition:all 0.2s;color:#6688aa" onmouseover="this.style.background='rgba(0,245,255,0.15)';this.style.borderColor='rgba(0,245,255,0.4)';this.style.color='#00f5ff'" onmouseout="this.style.background='rgba(0,245,255,0.07)';this.style.borderColor='rgba(0,245,255,0.15)';this.style.color='#6688aa'">
+        <span style="font-size:22px">👤</span>
+        <span style="font-family:Rajdhani,sans-serif;font-size:11px;letter-spacing:1px;text-transform:uppercase;text-align:center">Change<br>Username</span>
+      </button>
+      <button onclick="openChangeModal('password')" title="Change Password" style="display:flex;flex-direction:column;align-items:center;gap:5px;background:rgba(168,85,247,0.07);border:1px solid rgba(168,85,247,0.15);border-radius:10px;padding:10px 14px;cursor:pointer;transition:all 0.2s;color:#6688aa" onmouseover="this.style.background='rgba(168,85,247,0.15)';this.style.borderColor='rgba(168,85,247,0.4)';this.style.color='#a855f7'" onmouseout="this.style.background='rgba(168,85,247,0.07)';this.style.borderColor='rgba(168,85,247,0.15)';this.style.color='#6688aa'">
+        <span style="font-size:22px">🔑</span>
+        <span style="font-family:Rajdhani,sans-serif;font-size:11px;letter-spacing:1px;text-transform:uppercase;text-align:center">Change<br>Password</span>
+      </button>
+      <button onclick="openSendModal()" title="Send Password to Email" style="display:flex;flex-direction:column;align-items:center;gap:5px;background:rgba(255,45,120,0.07);border:1px solid rgba(255,45,120,0.15);border-radius:10px;padding:10px 14px;cursor:pointer;transition:all 0.2s;color:#6688aa" onmouseover="this.style.background='rgba(255,45,120,0.15)';this.style.borderColor='rgba(255,45,120,0.4)';this.style.color='#ff2d78'" onmouseout="this.style.background='rgba(255,45,120,0.07)';this.style.borderColor='rgba(255,45,120,0.15)';this.style.color='#6688aa'">
+        <span style="font-size:22px">📧</span>
+        <span style="font-family:Rajdhani,sans-serif;font-size:11px;letter-spacing:1px;text-transform:uppercase;text-align:center">Send<br>Password</span>
+      </button>
+
+    </div>
+  </div>
+</div>
+
+<!-- CHANGE CREDENTIALS MODAL -->
+<div class="overlay" id="m-change-creds" style="z-index:2000">
+  <div class="modal" style="border:1px solid #a855f7;box-shadow:0 0 60px rgba(168,85,247,0.2);background:#13131e;width:420px;max-width:95vw">
+    <h2 id="cc-title" style="font-family:Orbitron,monospace;font-size:15px;color:#a855f7;letter-spacing:2px;margin-bottom:6px">🔑 CHANGE CREDENTIALS</h2>
+    <p id="cc-subtitle" style="font-size:12px;color:#6666aa;margin-bottom:20px">Enter your current password to confirm</p>
+
+    <!-- Current password (hidden for forgot) -->
+    <div class="mf" id="cc-current-wrap">
+      <label>Current Password</label>
+      <input type="password" id="cc-current" placeholder="Your current password..." />
+    </div>
+    <hr style="border:none;border-top:1px solid #2a2a3a;margin:16px 0" id="cc-divider">
+
+    <!-- Username field -->
+    <div class="mf" id="cc-user-wrap">
+      <label>New Username</label>
+      <input type="text" id="cc-user" placeholder="Enter new username..." />
+    </div>
+
+    <!-- Password fields -->
+    <div id="cc-pass-wrap">
+      <div class="mf"><label>New Password</label><input type="password" id="cc-pass" placeholder="Enter new password..." /></div>
+      <div class="mf"><label>Confirm New Password</label><input type="password" id="cc-pass2" placeholder="Repeat new password..." /></div>
+    </div>
+
+    <!-- Forgot: show current credentials hint -->
+    <div id="cc-forgot-hint" style="display:none;background:rgba(255,215,0,0.07);border:1px solid rgba(255,215,0,0.2);border-radius:8px;padding:14px;margin-bottom:12px">
+      <div style="font-size:12px;color:#ffd700;margin-bottom:8px;letter-spacing:1px">💡 YOUR CURRENT CREDENTIALS</div>
+      <div style="font-size:14px;color:#e0e0f0">Username: <span id="hint-user" style="color:#00f5ff;font-weight:600"></span></div>
+      <div style="font-size:14px;color:#e0e0f0;margin-top:4px">Password: <span id="hint-pass" style="color:#00f5ff;font-weight:600"></span></div>
+
+    </div>
+
+    <div id="cc-err" style="color:#ff2d78;font-size:13px;margin-top:8px;display:none"></div>
+    <div id="cc-ok" style="color:#00ff88;font-size:13px;margin-top:8px;display:none">✅ Updated successfully!</div>
+    <div class="ma">
+      <button class="btn-cancel" onclick="closeModal('m-change-creds')">Cancel</button>
+      <button class="btn-confirm" style="background:linear-gradient(135deg,#a855f7,#7c3aed);color:#fff" onclick="confirmChangeCreds()">SAVE CHANGES</button>
+    </div>
+  </div>
+</div>
+
+<!-- SEND PASSWORD MODAL -->
+<div class="overlay" id="m-send-pass" style="z-index:2000">
+  <div class="modal" style="border:1px solid #ff2d78;box-shadow:0 0 60px rgba(255,45,120,0.2);background:#13131e;width:400px;max-width:95vw">
+    <h2 style="font-family:Orbitron,monospace;font-size:15px;color:#ff2d78;letter-spacing:2px;margin-bottom:6px">📧 SEND PASSWORD</h2>
+    <p style="font-size:12px;color:#6666aa;margin-bottom:20px">Choose which email to send your credentials to</p>
+    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px">
+      <button onclick="sendEmail('faridamohamed10404@gmail.com')" id="btn-email1" style="display:flex;align-items:center;gap:12px;background:rgba(0,245,255,0.07);border:1px solid rgba(0,245,255,0.2);border-radius:10px;padding:14px 16px;cursor:pointer;color:#00f5ff;font-family:Rajdhani,sans-serif;font-size:14px;font-weight:600;transition:all 0.2s;text-align:left;width:100%" onmouseover="this.style.background='rgba(0,245,255,0.15)'" onmouseout="this.style.background='rgba(0,245,255,0.07)'">
+        <span style="font-size:24px">📨</span>
+        <div>
+          <div style="font-size:14px">Email 1</div>
+          <div style="font-size:12px;color:#6688aa;margin-top:2px">faridamohamed10404@gmail.com</div>
+        </div>
+      </button>
+      <button onclick="sendEmail('zaynmohamed@gmail.com')" id="btn-email2" style="display:flex;align-items:center;gap:12px;background:rgba(168,85,247,0.07);border:1px solid rgba(168,85,247,0.2);border-radius:10px;padding:14px 16px;cursor:pointer;color:#a855f7;font-family:Rajdhani,sans-serif;font-size:14px;font-weight:600;transition:all 0.2s;text-align:left;width:100%" onmouseover="this.style.background='rgba(168,85,247,0.15)'" onmouseout="this.style.background='rgba(168,85,247,0.07)'">
+        <span style="font-size:24px">📨</span>
+        <div>
+          <div style="font-size:14px">Email 2</div>
+          <div style="font-size:12px;color:#6688aa;margin-top:2px">zaynmohamed@gmail.com</div>
+        </div>
+      </button>
+    </div>
+    <div id="send-status" style="display:none;padding:12px;border-radius:8px;font-size:13px;margin-bottom:12px;text-align:center"></div>
+    <div class="ma">
+      <button class="btn-cancel" onclick="closeModal('m-send-pass')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app" style="display:none">
+
+<nav>
+  <div class="nav-logo">CHILL<span>ZONE</span></div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="showPage('rooms',this)">🎮 Rooms</button>
+    <button class="nav-tab" onclick="showPage('reservations',this)">📅 Reservations</button>
+    <button class="nav-tab" onclick="showPage('dashboard',this)">📊 Dashboard</button>
+    <button class="nav-tab" onclick="showPage('log',this)">📋 Log</button>
+  </div>
+  <div class="nav-right">
+    <span id="live-clock">00:00:00</span>
+    <button class="theme-btn" onclick="toggleTheme()" id="theme-icon">🌙</button>
+    <button class="logout-btn" onclick="logout()">Logout</button>
+  </div>
+</nav>
+
+<!-- STATS BAR -->
+<div class="stats-bar">
+  <div class="stat"><div class="dot dot-g"></div><span>Free:</span><span class="stat-val" id="s-free">6</span></div>
+  <div class="stat"><div class="dot dot-r"></div><span>Occupied:</span><span class="stat-val" id="s-occ">0</span></div>
+  <div class="stat"><div class="dot dot-p"></div><span>Reserved:</span><span class="stat-val" id="s-res">0</span></div>
+  <div class="stat"><div class="dot" style="background:#ffd700;box-shadow:0 0 8px #ffd700"></div><span>👑 VIP Rooms:</span><span class="stat-val" style="color:#ffd700">3</span></div>
+  <div class="stat"><div class="dot dot-y"></div><span>Today Revenue:</span><span class="stat-val" id="s-rev">0.00 EGP</span></div>
+  <div class="stat"><div class="dot dot-y"></div><span>Total Sessions:</span><span class="stat-val" id="s-sess">0</span></div>
+</div>
+
+<!-- ROOMS PAGE -->
+<div class="page active" id="page-rooms">
+  <div class="rooms-wrap" id="rooms-grid"></div>
+</div>
+
+<!-- RESERVATIONS PAGE -->
+<div class="page" id="page-reservations">
+  <div style="padding:24px 32px 0;display:flex;justify-content:space-between;align-items:center;position:relative;z-index:1;">
+    <div style="font-family:'Orbitron',monospace;font-size:14px;color:var(--purple);letter-spacing:2px;">UPCOMING RESERVATIONS</div>
+    <button class="btn btn-res" style="flex:none;padding:10px 20px;" onclick="openResModal()">+ New Reservation</button>
+  </div>
+  <div class="res-list" id="res-list-wrap"></div>
+</div>
+
+<!-- DASHBOARD PAGE -->
+<div class="page" id="page-dashboard">
+  <div class="dash-wrap">
+    <div class="dash-kpis">
+      <div class="kpi k1"><div class="kpi-label">Today Revenue</div><div class="kpi-val" id="d-rev">0 EGP</div><div class="kpi-sub">All completed sessions</div></div>
+      <div class="kpi k2"><div class="kpi-label">Total Sessions</div><div class="kpi-val" id="d-sess">0</div><div class="kpi-sub">Since launch</div></div>
+      <div class="kpi k3"><div class="kpi-label">Avg Session</div><div class="kpi-val" id="d-avg">0 min</div><div class="kpi-sub">Per guest</div></div>
+      <div class="kpi k4"><div class="kpi-label">Top Room</div><div class="kpi-val" id="d-top">—</div><div class="kpi-sub">Most used today</div></div>
+    </div>
+    <div class="charts-grid">
+      <div class="chart-card">
+        <div class="chart-title">HOURLY REVENUE — TODAY</div>
+        <canvas id="chart-revenue" height="200"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">ROOM USAGE</div>
+        <canvas id="chart-rooms" height="200"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- LOG PAGE -->
+<div class="page" id="page-log">
+  <div class="log-wrap">
+    <div class="log-card">
+      <div class="log-hdr">
+        <div class="log-title">SESSION LOG</div>
+        <button class="btn-clear" onclick="clearLog()">Clear Log</button>
+      </div>
+      <div style="overflow-x:auto">
+        <table>
+          <thead><tr>
+            <th>Room</th><th>Guest</th><th>Check-In</th><th>Check-Out</th><th>Duration</th><th>Rate</th><th>Total</th>
+          </tr></thead>
+          <tbody id="log-body"><tr><td colspan="7" class="t-empty">No sessions yet.</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /app -->
+
+<!-- CHECK-IN MODAL -->
+<div class="overlay" id="m-checkin">
+  <div class="modal m-accent">
+    <h2 class="c-accent">🎮 CHECK-IN</h2>
+    <div class="mf"><label>Guest Name</label><input type="text" id="ci-name" placeholder="Enter guest name..." /></div>
+    <div class="mf"><label>Room</label><input type="text" id="ci-room" readonly /></div>
+    <div class="mf"><label>Price per Hour (EGP)</label><input type="number" id="ci-price" value="25" min="1" /></div>
+    <div class="ma">
+      <button class="btn-cancel" onclick="closeModal('m-checkin')">Cancel</button>
+      <button class="btn-confirm" onclick="confirmCheckin()">CONFIRM CHECK-IN</button>
+    </div>
+  </div>
+</div>
+
+<!-- RESERVATION MODAL -->
+<div class="overlay" id="m-reserve">
+  <div class="modal m-purple">
+    <h2 class="c-purple">📅 NEW RESERVATION</h2>
+    <div class="mf"><label>Guest Name</label><input type="text" id="res-name" placeholder="Guest name..." /></div>
+    <div class="mf"><label>Room</label>
+      <select id="res-room">
+        <option value="">Select room...</option>
+        <option value="1">ROOM 01</option><option value="2">ROOM 02</option>
+        <option value="1">ROOM 01 👑 VIP</option><option value="2">ROOM 02 👑 VIP</option>
+        <option value="3">ROOM 03 👑 VIP</option><option value="4">ROOM 04 🎮 Regular</option>
+        <option value="5">ROOM 05 🎮 Regular</option><option value="6">ROOM 06 🎮 Regular</option>
+      </select>
+    </div>
+    <div class="mf"><label>Date & Time</label><input type="datetime-local" id="res-time" /></div>
+    <div class="mf"><label>Price per Hour (EGP)</label><input type="number" id="res-price" value="25" min="1" /></div>
+    <div class="mf"><label>Notes (optional)</label><input type="text" id="res-notes" placeholder="Any notes..." /></div>
+    <div class="ma">
+      <button class="btn-cancel" onclick="closeModal('m-reserve')">Cancel</button>
+      <button class="btn-confirm c-purple" onclick="confirmReservation()">SAVE RESERVATION</button>
+    </div>
+  </div>
+</div>
+
+<!-- RECEIPT MODAL -->
+<div class="overlay" id="m-receipt">
+  <div class="modal m-yellow">
+    <h2 class="c-yellow">🧾 SESSION RECEIPT</h2>
+    <div id="receipt-body"></div>
+    <div class="ma" style="margin-top:16px">
+      <button class="btn-cancel" onclick="closeModal('m-receipt')">Close</button>
+      <button class="btn-confirm" onclick="closeModal('m-receipt')">✓ DONE</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── STATE ──
+const CREDS = { admin: '1234' };
+const ROOMS_DEF = [
+  {id:1,name:'ROOM 01',icon:'👑',vip:true},{id:2,name:'ROOM 02',icon:'👑',vip:true},
+  {id:3,name:'ROOM 03',icon:'👑',vip:true},{id:4,name:'ROOM 04',icon:'🎮',vip:false},
+  {id:5,name:'ROOM 05',icon:'🎮',vip:false},{id:6,name:'ROOM 06',icon:'🎮',vip:false},
+];
+let sessions = {};
+let reservations = [];
+let logs = [];
+let totalRevenue = 0;
+let timerIntervals = {};
+let revenueChart, roomsChart;
+let pendingRoom = null;
+
+// ── PERSIST ──
+function save() {
+  try {
+    const data = {
+      sessions: Object.fromEntries(Object.entries(sessions).map(([k,v])=>[k,{...v,checkIn:v.checkIn.toISOString()}])),
+      reservations, logs, totalRevenue
+    };
+    localStorage.setItem('pscafe_data', JSON.stringify(data));
+  } catch(e){}
+}
+
+function load() {
+  try {
+    const raw = localStorage.getItem('pscafe_data');
+    if (!raw) return;
+    const data = JSON.parse(raw);
+    sessions = Object.fromEntries(Object.entries(data.sessions||{}).map(([k,v])=>[k,{...v,checkIn:new Date(v.checkIn)}]));
+    reservations = data.reservations || [];
+    logs = data.logs || [];
+    totalRevenue = data.totalRevenue || 0;
+  } catch(e){}
+}
+
+// ── LOGIN ──
+function doLogin() {
+  const u = document.getElementById('l-user').value.trim();
+  const p = document.getElementById('l-pass').value;
+  if (CREDS[u] && CREDS[u] === p) {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    load();
+    renderAll();
+    startClock();
+  } else {
+    const e = document.getElementById('l-err');
+    e.style.display = 'block';
+    setTimeout(()=>e.style.display='none', 3000);
+  }
+}
+
+function logout() {
+  save();
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('l-pass').value = '';
+}
+
+// ── THEME ──
+function toggleTheme() {
+  const cur = document.documentElement.getAttribute('data-theme');
+  const next = cur === 'light' ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', next === 'dark' ? '' : 'light');
+  document.getElementById('theme-icon').textContent = next === 'light' ? '☀️' : '🌙';
+  if (revenueChart) { revenueChart.destroy(); revenueChart = null; }
+  if (roomsChart) { roomsChart.destroy(); roomsChart = null; }
+  renderDashboard();
+}
+
+// ── CLOCK ──
+function startClock() {
+  setInterval(()=>{ document.getElementById('live-clock').textContent = fmt(new Date()); }, 1000);
+}
+
+function fmt(d) { return d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit'}); }
+function fmtDT(d) { return d.toLocaleDateString('en-GB')+' '+fmt(d); }
+function fmtDur(ms) {
+  const s=Math.floor(ms/1000), h=Math.floor(s/3600), m=Math.floor((s%3600)/60), sec=s%60;
+  return `${pad(h)}:${pad(m)}:${pad(sec)}`;
+}
+function pad(n){return String(n).padStart(2,'0');}
+function calcCost(ms,ph){return (ms/3600000*ph).toFixed(2);}
+
+// ── PAGES ──
+function showPage(name, btn) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  btn.classList.add('active');
+  if (name==='dashboard') renderDashboard();
+  if (name==='reservations') renderReservations();
+}
+
+// ── RENDER ALL ──
+function renderAll() {
+  renderRooms();
+  renderLog();
+  renderReservations();
+  updateStats();
+}
+
+// ── ROOMS ──
+function renderRooms() {
+  const grid = document.getElementById('rooms-grid');
+  grid.innerHTML = '';
+  Object.values(timerIntervals).forEach(clearInterval);
+  timerIntervals = {};
+
+  ROOMS_DEF.forEach(room => {
+    const s = sessions[room.id];
+    const res = reservations.find(r=>r.roomId==room.id);
+    const occupied = !!s;
+    const resOnly = !occupied && !!res;
+    const statusClass = occupied ? 'occupied' : resOnly ? 'reserved' : 'free';
+    const badge = occupied ? '<span class="badge badge-occupied">OCCUPIED</span>' :
+                  resOnly ? '<span class="badge badge-reserved">RESERVED</span>' :
+                  '<span class="badge badge-free">FREE</span>';
+
+    const body = occupied ? `
+      <div class="timer-big" id="tmr-${room.id}">00:00:00</div>
+      <div class="info-r"><span class="il">Guest</span><span class="iv">${s.guest}</span></div>
+      <div class="info-r"><span class="il">Check-In</span><span class="iv">${fmt(s.checkIn)}</span></div>
+      <div class="info-r"><span class="il">Rate</span><span class="iv y">${s.price} EGP/hr</span></div>
+      <div class="info-r"><span class="il">Running Cost</span><span class="iv r" id="cost-${room.id}">0.00 EGP</span></div>
+    ` : resOnly ? `
+      <div class="info-r"><span class="il">Status</span><span class="iv p">RESERVED</span></div>
+      <div class="info-r"><span class="il">Guest</span><span class="iv p">${res.guest}</span></div>
+      <div class="info-r"><span class="il">Time</span><span class="iv">${new Date(res.time).toLocaleString('en-GB',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</span></div>
+      <div class="info-r"><span class="il">Notes</span><span class="iv m">${res.notes||'—'}</span></div>
+    ` : `
+      <div class="info-r"><span class="il">Status</span><span class="iv g">READY</span></div>
+      <div class="info-r"><span class="il">Guest</span><span class="iv m">—</span></div>
+      <div class="info-r"><span class="il">Check-In</span><span class="iv m">—</span></div>
+      <div class="info-r"><span class="iv m">—</span></div>
+    `;
+
+    const actions = occupied ? `
+      <button class="btn btn-out" onclick="checkOut(${room.id})">Check Out</button>
+    ` : resOnly ? `
+      <button class="btn btn-activate" onclick="activateReservation(${room.id})">Activate</button>
+      <button class="btn btn-in" onclick="openCheckin(${room.id})">Walk-In</button>
+    ` : `
+      <button class="btn btn-in" onclick="openCheckin(${room.id})">Check In</button>
+      <button class="btn btn-res" onclick="openResForRoom(${room.id})">Reserve</button>
+    `;
+
+    const card = document.createElement('div');
+    card.className = `room-card ${statusClass}`;
+    card.id = `rc-${room.id}`;
+    card.innerHTML = `
+      <div class="rh"><div class="rh-left"><span class="rh-icon">${room.icon}</span><span class="rh-name">${room.name}</span>${room.vip ? '<span class="badge" style="background:rgba(255,215,0,0.15);color:#ffd700;border:1px solid rgba(255,215,0,0.3);margin-left:6px">VIP</span>' : '<span class="badge" style="background:rgba(150,150,150,0.1);color:#aaa;border:1px solid rgba(150,150,150,0.2);margin-left:6px">REG</span>'}</div>${badge}</div>
+      <div class="rb">${body}</div>
+      <div class="ra">${actions}</div>
+    `;
+    grid.appendChild(card);
+    if (occupied) startTimer(room.id);
+  });
+  updateStats();
+}
+
+function startTimer(id) {
+  timerIntervals[id] = setInterval(()=>{
+    const s = sessions[id]; if(!s){clearInterval(timerIntervals[id]);return;}
+    const el = Date.now()-s.checkIn.getTime();
+    const t = document.getElementById('tmr-'+id);
+    const c = document.getElementById('cost-'+id);
+    if(t) t.textContent = fmtDur(el);
+    if(c) c.textContent = calcCost(el,s.price)+' EGP';
+  },1000);
+}
+
+// ── CHECK-IN ──
+function openCheckin(id) {
+  pendingRoom = id;
+  const room = ROOMS_DEF.find(r=>r.id==id);
+  document.getElementById('ci-room').value = room.name;
+  document.getElementById('ci-name').value = '';
+  document.getElementById('ci-price').value = '25';
+  document.getElementById('m-checkin').classList.add('show');
+  setTimeout(()=>document.getElementById('ci-name').focus(),100);
+}
+
+function confirmCheckin() {
+  const guest = document.getElementById('ci-name').value.trim();
+  const price = parseFloat(document.getElementById('ci-price').value);
+  if(!guest){alert('Enter guest name.');return;}
+  if(!price||price<=0){alert('Enter valid price.');return;}
+  sessions[pendingRoom] = {guest, price, checkIn:new Date()};
+  closeModal('m-checkin');
+  save(); renderAll();
+}
+
+// ── CHECK-OUT ──
+function checkOut(id) {
+  const s = sessions[id]; if(!s) return;
+  const now = new Date();
+  const el = now - s.checkIn;
+  const cost = parseFloat(calcCost(el, s.price));
+  totalRevenue += cost;
+  const room = ROOMS_DEF.find(r=>r.id==id);
+  logs.unshift({room:room.name, guest:s.guest, checkIn:fmtDT(s.checkIn), checkOut:fmtDT(now), duration:fmtDur(el), rate:s.price, total:cost.toFixed(2), ms:el});
+  showReceipt(room, s, now, el, cost);
+  clearInterval(timerIntervals[id]);
+  delete sessions[id];
+  save(); renderAll(); renderLog();
+}
+
+function showReceipt(room, s, out, el, cost) {
+  document.getElementById('receipt-body').innerHTML = `
+    <div class="receipt-row"><span style="color:var(--muted)">Room</span><span>${room.name}</span></div>
+    <div class="receipt-row"><span style="color:var(--muted)">Guest</span><span>${s.guest}</span></div>
+    <hr class="receipt-divider">
+    <div class="receipt-row"><span style="color:var(--muted)">Check-In</span><span>${fmt(s.checkIn)}</span></div>
+    <div class="receipt-row"><span style="color:var(--muted)">Check-Out</span><span>${fmt(out)}</span></div>
+    <div class="receipt-row"><span style="color:var(--muted)">Duration</span><span style="color:var(--accent);font-family:'Orbitron',monospace;font-size:13px">${fmtDur(el)}</span></div>
+    <div class="receipt-row"><span style="color:var(--muted)">Rate</span><span>${s.price} EGP/hr</span></div>
+    <div class="receipt-total"><span class="rt-label">TOTAL DUE</span><span class="rt-val">${cost.toFixed(2)} EGP</span></div>
+  `;
+  document.getElementById('m-receipt').classList.add('show');
+}
+
+// ── RESERVATIONS ──
+function openResModal() { openResForRoom(null); }
+function openResForRoom(id) {
+  document.getElementById('res-name').value='';
+  document.getElementById('res-room').value = id||'';
+  document.getElementById('res-notes').value='';
+  document.getElementById('res-price').value='25';
+  const now = new Date(); now.setMinutes(0,0,0);
+  now.setHours(now.getHours()+1);
+  document.getElementById('res-time').value = now.toISOString().slice(0,16);
+  document.getElementById('m-reserve').classList.add('show');
+  setTimeout(()=>document.getElementById('res-name').focus(),100);
+}
+
+function confirmReservation() {
+  const guest = document.getElementById('res-name').value.trim();
+  const roomId = parseInt(document.getElementById('res-room').value);
+  const time = document.getElementById('res-time').value;
+  const price = parseFloat(document.getElementById('res-price').value);
+  const notes = document.getElementById('res-notes').value.trim();
+  if(!guest){alert('Enter guest name.');return;}
+  if(!roomId){alert('Select a room.');return;}
+  if(!time){alert('Select date & time.');return;}
+  reservations.push({id:Date.now(), guest, roomId, time, price, notes});
+  closeModal('m-reserve');
+  save(); renderAll();
+}
+
+function activateReservation(roomId) {
+  const res = reservations.find(r=>r.roomId==roomId);
+  if(!res) return;
+  sessions[roomId] = {guest:res.guest, price:res.price, checkIn:new Date()};
+  reservations = reservations.filter(r=>r.roomId!=roomId);
+  save(); renderAll();
+}
+
+function cancelReservation(id) {
+  if(!confirm('Cancel this reservation?')) return;
+  reservations = reservations.filter(r=>r.id!=id);
+  save(); renderAll();
+}
+
+function renderReservations() {
+  const wrap = document.getElementById('res-list-wrap');
+  if(!reservations.length){
+    wrap.innerHTML='<div style="padding:48px;text-align:center;color:var(--muted);">No upcoming reservations. Click "+ New Reservation" to add one.</div>';
+    return;
+  }
+  wrap.innerHTML = reservations.sort((a,b)=>new Date(a.time)-new Date(b.time)).map(r=>{
+    const room = ROOMS_DEF.find(rm=>rm.id==r.roomId);
+    const dt = new Date(r.time);
+    return `<div class="res-item">
+      <div class="res-info">
+        <div class="res-name">${r.guest} <span style="color:var(--purple);font-size:12px">→ ${room?.name||'?'}</span></div>
+        <div class="res-meta">${dt.toLocaleString('en-GB',{weekday:'short',day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})} · ${r.price} EGP/hr ${r.notes?'· '+r.notes:''}</div>
+      </div>
+      <div class="res-actions">
+        <button class="btn-sm btn-sm-green" onclick="activateReservation(${r.roomId})">Activate</button>
+        <button class="btn-sm btn-sm-red" onclick="cancelReservation(${r.id})">Cancel</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── STATS ──
+function updateStats() {
+  const occ = Object.keys(sessions).length;
+  const res = reservations.length;
+  document.getElementById('s-free').textContent = 6-occ;
+  document.getElementById('s-occ').textContent = occ;
+  document.getElementById('s-res').textContent = res;
+  document.getElementById('s-rev').textContent = totalRevenue.toFixed(2)+' EGP';
+  document.getElementById('s-sess').textContent = logs.length;
+}
+
+// ── LOG ──
+function renderLog() {
+  const tb = document.getElementById('log-body');
+  if(!logs.length){tb.innerHTML='<tr><td colspan="7" class="t-empty">No sessions yet.</td></tr>';return;}
+  tb.innerHTML = logs.map(l=>`<tr>
+    <td>${l.room}</td><td>${l.guest}</td><td>${l.checkIn}</td><td>${l.checkOut}</td>
+    <td style="font-family:'Orbitron',monospace;font-size:11px;color:var(--accent)">${l.duration}</td>
+    <td style="color:var(--muted)">${l.rate} EGP/hr</td>
+    <td style="font-family:'Orbitron',monospace;font-size:13px;font-weight:700;color:var(--yellow)">${l.total} EGP</td>
+  </tr>`).join('');
+}
+
+function clearLog() {
+  if(!confirm('Clear all log history?')) return;
+  logs=[]; totalRevenue=0; save(); renderAll();
+}
+
+// ── DASHBOARD ──
+function renderDashboard() {
+  const totalSess = logs.length;
+  const avgMs = totalSess ? logs.reduce((a,l)=>a+(l.ms||0),0)/totalSess : 0;
+  const roomCount = {};
+  logs.forEach(l=>{ roomCount[l.room]=(roomCount[l.room]||0)+1; });
+  const topRoom = Object.entries(roomCount).sort((a,b)=>b[1]-a[1])[0];
+
+  document.getElementById('d-rev').textContent = totalRevenue.toFixed(0)+' EGP';
+  document.getElementById('d-sess').textContent = totalSess;
+  document.getElementById('d-avg').textContent = Math.round(avgMs/60000)+' min';
+  document.getElementById('d-top').textContent = topRoom ? topRoom[0].replace('ROOM ','R') : '—';
+
+  // Revenue chart by hour
+  const hourlyRev = new Array(24).fill(0);
+  const today = new Date().toLocaleDateString('en-GB');
+  logs.forEach(l=>{
+    if(l.checkOut && l.checkOut.startsWith(today)){
+      const h = parseInt(l.checkOut.split(' ')[1].split(':')[0]);
+      hourlyRev[h] += parseFloat(l.total)||0;
+    }
+  });
+  const labels = Array.from({length:24},(_,i)=>`${pad(i)}:00`);
+  const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
+  const gridColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)';
+  const labelColor = isDark ? '#6666aa' : '#9999bb';
+
+  if(revenueChart) revenueChart.destroy();
+  revenueChart = new Chart(document.getElementById('chart-revenue'), {
+    type:'bar',
+    data:{
+      labels,
+      datasets:[{
+        label:'Revenue (EGP)',
+        data:hourlyRev,
+        backgroundColor:'rgba(0,245,255,0.25)',
+        borderColor:'rgba(0,245,255,0.8)',
+        borderWidth:1, borderRadius:4,
+      }]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{
+        x:{grid:{color:gridColor},ticks:{color:labelColor,font:{size:10},maxRotation:45}},
+        y:{grid:{color:gridColor},ticks:{color:labelColor,font:{size:11}}}
+      }
+    }
+  });
+
+  // Room usage donut
+  const rNames = ROOMS_DEF.map(r=>r.name);
+  const rCounts = ROOMS_DEF.map(r=>roomCount[r.name]||0);
+  if(roomsChart) roomsChart.destroy();
+  roomsChart = new Chart(document.getElementById('chart-rooms'), {
+    type:'doughnut',
+    data:{
+      labels:rNames,
+      datasets:[{
+        data:rCounts,
+        backgroundColor:['rgba(255,215,0,0.7)','rgba(255,200,0,0.7)','rgba(255,185,0,0.7)','rgba(0,245,255,0.7)','rgba(0,200,255,0.7)','rgba(0,155,255,0.7)'],
+        borderColor:'transparent', hoverOffset:8
+      }]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{position:'bottom',labels:{color:labelColor,font:{size:11},padding:16}}}
+    }
+  });
+}
+
+// ── MODAL HELPERS ──
+function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+
+// ── INIT ──
+document.getElementById('l-pass').addEventListener('keydown', e=>{if(e.key==='Enter')doLogin();});
+
+// ── CHANGE CREDENTIALS ──
+let _ccMode = 'username';
+function openChangeModal(mode) {
+  _ccMode = mode;
+  ['cc-current','cc-user','cc-pass','cc-pass2'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+  document.getElementById('cc-err').style.display='none';
+  document.getElementById('cc-ok').style.display='none';
+
+  const title = document.getElementById('cc-title');
+  const subtitle = document.getElementById('cc-subtitle');
+  const userWrap = document.getElementById('cc-user-wrap');
+  const passWrap = document.getElementById('cc-pass-wrap');
+  const currentWrap = document.getElementById('cc-current-wrap');
+  const divider = document.getElementById('cc-divider');
+  const forgotHint = document.getElementById('cc-forgot-hint');
+
+  forgotHint.style.display='none';
+  userWrap.style.display='block';
+  passWrap.style.display='block';
+  currentWrap.style.display='block';
+  divider.style.display='block';
+
+  if(mode==='username'){
+    title.textContent='👤 CHANGE USERNAME';
+    subtitle.textContent='Enter current password then set your new username';
+    passWrap.style.display='none';
+  } else if(mode==='password'){
+    title.textContent='🔑 CHANGE PASSWORD';
+    subtitle.textContent='Enter current password then set your new password';
+    userWrap.style.display='none';
+  }
+  document.getElementById('m-change-creds').classList.add('show');
+}
+
+function confirmChangeCreds() {
+  const errEl = document.getElementById('cc-err');
+  const okEl = document.getElementById('cc-ok');
+  errEl.style.display='none'; okEl.style.display='none';
+  const storedUser = localStorage.getItem('pscafe_username') || 'admin';
+  const storedPass = localStorage.getItem('pscafe_password') || '1234';
+
+  if(_ccMode === 'forgot') { closeModal('m-change-creds'); return; }
+
+  const currentPass = document.getElementById('cc-current').value;
+  if(currentPass !== storedPass) {
+    errEl.textContent = '❌ Current password is incorrect.'; errEl.style.display='block'; return;
+  }
+
+  if(_ccMode === 'username') {
+    const newUser = document.getElementById('cc-user').value.trim();
+    if(!newUser) { errEl.textContent='❌ Please enter a new username.'; errEl.style.display='block'; return; }
+    localStorage.setItem('pscafe_username', newUser);
+    Object.keys(CREDS).forEach(k=>delete CREDS[k]); CREDS[newUser]=storedPass;
+  } else if(_ccMode === 'password') {
+    const newPass = document.getElementById('cc-pass').value;
+    const newPass2 = document.getElementById('cc-pass2').value;
+    if(!newPass) { errEl.textContent='❌ Please enter a new password.'; errEl.style.display='block'; return; }
+    if(newPass !== newPass2) { errEl.textContent='❌ Passwords do not match.'; errEl.style.display='block'; return; }
+    localStorage.setItem('pscafe_password', newPass);
+    Object.keys(CREDS).forEach(k=>delete CREDS[k]); CREDS[storedUser]=newPass;
+  }
+  okEl.style.display='block';
+  setTimeout(()=>closeModal('m-change-creds'), 1500);
+}
+
+// ── EMAILJS ──
+emailjs.init('RtvgIsZiS2jRb-I7j');
+
+function openSendModal() {
+  document.getElementById('send-status').style.display = 'none';
+  document.getElementById('m-send-pass').classList.add('show');
+}
+
+function sendEmail(toEmail) {
+  const user = localStorage.getItem('pscafe_username') || 'admin';
+  const pass = localStorage.getItem('pscafe_password') || '1234';
+  const statusEl = document.getElementById('send-status');
+  statusEl.style.display = 'block';
+  statusEl.style.background = 'rgba(0,245,255,0.07)';
+  statusEl.style.color = '#00f5ff';
+  statusEl.style.border = '1px solid rgba(0,245,255,0.2)';
+  statusEl.textContent = '⏳ Sending...';
+
+  emailjs.send('service_50zw1rm', 'template_yowhfvp', {
+    to_email: toEmail,
+    username: user,
+    password: pass
+  }).then(() => {
+    statusEl.style.background = 'rgba(0,255,136,0.07)';
+    statusEl.style.color = '#00ff88';
+    statusEl.style.border = '1px solid rgba(0,255,136,0.2)';
+    statusEl.textContent = '✅ Email sent successfully to ' + toEmail;
+  }).catch((err) => {
+    statusEl.style.background = 'rgba(255,45,120,0.07)';
+    statusEl.style.color = '#ff2d78';
+    statusEl.style.border = '1px solid rgba(255,45,120,0.2)';
+    statusEl.textContent = '❌ Failed to send. Try again.';
+    console.error('EmailJS error:', err);
+  });
+}
+
+// Load saved credentials on startup
+(function loadCreds(){
+  const u = localStorage.getItem('pscafe_username');
+  const p = localStorage.getItem('pscafe_password');
+  if(u && p) { Object.keys(CREDS).forEach(k=>delete CREDS[k]); CREDS[u]=p; }
+})();
+</script>
+</body>
+</html>
